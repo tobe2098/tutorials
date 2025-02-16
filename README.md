@@ -15,3 +15,8 @@ cmake -DBUILD_SHARED_LIBS=OFF -DGGML_BLAS=ON -DGGML_BLAS_VENDOR=OpenBLAS
 update cuda toolkit
 sudo cmake .. -DBUILD_SHARED_LIBS=OFF -DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES="50" -DCMAKE_CUDA_COMPILER=$(which nvcc)
 sudo cmake --build . --config Release
+
+## Script
+- Create chat.py
+- Permission to execute
+- Create a bash script that runs it in /usr/local/bin/
