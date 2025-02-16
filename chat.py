@@ -20,7 +20,7 @@ class LLMChat:
             self.load_initial_prompt(prompt_file)
 
     def load_system_config(self):
-        config_path = "/opt/llm-chat/config/system.json"
+        config_path = "/opt/llm-chat/config.json"
         try:
             with open(config_path, 'r') as f:
                 return json.load(f)
