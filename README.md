@@ -11,3 +11,6 @@ Guide to set up your own linux server and to be able to access it from anywhere
 ## LLama.cpp
 ### CPU-only
 cmake -DBUILD_SHARED_LIBS=OFF -DGGML_BLAS=ON -DGGML_BLAS_VENDOR=OpenBLAS
+### GPU
+update cuda toolkit
+sudo cmake .. -DBUILD_SHARED_LIBS=OFF -DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES="50" -DCMAKE_CUDA_COMPILER=$(which nvcc)
