@@ -7,3 +7,7 @@ Guide to set up your own linux server and to be able to access it from anywhere
 3. Set up your ssh with the router IP and the port
 4. Set up the keys
 5. 
+
+## LLama.cpp
+### CPU-only
+cmake -DBUILD_SHARED_LIBS=OFF -DGGML_BLAS=ON -DGGML_BLAS_VENDOR=OpenBLAS
