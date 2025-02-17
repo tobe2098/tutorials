@@ -7,6 +7,8 @@ import sys
 import argparse
 from datetime import datetime
 
+llama_api_path="/opt/llm-chat/llama.cpp/build/bin/llama-cli"
+
 class LLMChat:
     def __init__(self, model_path=None, n_gpu_layers=None, ctx_size=None, prompt_file=None):
         self.config = self.load_system_config()
@@ -49,7 +51,9 @@ class LLMChat:
             print("ERROR")
         return subprocess.Popen(
             [
-                os.path.realpath(__file__),
+                 llama_api_path,
+#                "./main",
+#                os.path.realpath(__file__),
                 "-m", self.model_path,
                 "--n-gpu-layers", str(self.n_gpu_layers),
                 "--ctx-size", str(self.ctx_size),
