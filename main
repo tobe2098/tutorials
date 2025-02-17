@@ -10,7 +10,7 @@ from datetime import datetime
 class LLMChat:
     def __init__(self, model_path=None, n_gpu_layers=None, ctx_size=None, prompt_file=None):
         self.config = self.load_system_config()
-        self.model_path = model_path or self.config.get('model_path')
+        self.model_path = model_path or self.config.get('model_path_default')
         self.n_gpu_layers = n_gpu_layers or self.config.get('default_gpu_layers', 35)
         self.ctx_size = ctx_size or self.config.get('default_ctx_size', 4096)
         self.history_dir = os.path.expanduser("~/.llm_chat_history")
@@ -45,9 +45,11 @@ class LLMChat:
             os.makedirs(self.history_dir)
 
     def start_process(self):
+        if not self.model_path:
+            print("ERROR")
         return subprocess.Popen(
             [
-                "./main",
+                os.path.realpath(__file__),
                 "-m", self.model_path,
                 "--n-gpu-layers", str(self.n_gpu_layers),
                 "--ctx-size", str(self.ctx_size),
