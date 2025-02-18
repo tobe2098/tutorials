@@ -1,0 +1,163 @@
+#!/bin/bash
+
+# Configuration variables
+MODEL_DIR="/opt/llm-chat/models"
+PROMPT_DIR="/opt/llm-chat/prompts"
+GLOBAL_CONFIG="/opt/llm-chat/config.json"
+
+# Function to list available models
+list_models() {
+    echo "Available models:"
+    ls -1 "$MODEL_DIR" | grep -E '\.bin$|\.gguf$' | nl
+}
+
+# Function to list available prompts
+list_prompts() {
+    echo "Available prompts:"
+    ls -1 "$PROMPT_DIR" | grep -E '\.txt$|\.md$' | nl
+}
+
+# Function to list previous conversations
+list_conversations() {
+    local user_home="$HOME/.llm-chat/conversations"
+    if [ ! -d "$user_home" ]; then
+        echo "No previous conversations found."
+        return 1
+    fi
+    
+    echo "Previous conversations:"
+    ls -1 "$user_home" | grep -E '\.json$' | sed 's/\.json$//' | nl
+    return 0
+}
+
+# Function to get conversation to include
+get_conversation_context() {
+    local has_convs
+    list_conversations
+    has_convs=$?
+    
+    if [ $has_convs -eq 0 ]; then
+        echo "Enter conversation number to load (or 0 for new conversation):"
+        read conv_num
+        
+        if [ "$conv_num" -eq 0 ]; then
+            return 1
+        else
+            local conv_files=($(ls -1 "$HOME/.llm-chat/conversations" | grep -E '\.json$'))
+            if [ -n "${conv_files[$conv_num-1]}" ]; then
+                selected_conv="$HOME/.llm-chat/conversations/${conv_files[$conv_num-1]}"
+                echo "Loading conversation: ${conv_files[$conv_num-1]}"
+                return 0
+            else
+                echo "Invalid selection."
+                return 1
+            fi
+        fi
+    fi
+    return 1
+}
+
+# Function to get initial prompt
+get_initial_prompt() {
+    list_prompts
+    echo "Enter prompt number to use (or 0 for none):"
+    read prompt_num
+    
+    if [ "$prompt_num" -eq 0 ]; then
+        return 1
+    else
+        local prompt_files=($(ls -1 "$PROMPT_DIR" | grep -E '\.txt$|\.md$'))
+        if [ -n "${prompt_files[$prompt_num-1]}" ]; then
+            selected_prompt="$PROMPT_DIR/${prompt_files[$prompt_num-1]}"
+            echo "Using prompt: ${prompt_files[$prompt_num-1]}"
+            return 0
+        else
+            echo "Invalid selection."
+            return 1
+        fi
+    fi
+}
+
+# Function to load configurations
+load_config() {
+    # Default options
+    local options="--ctx_size 2048 --temp 0.7 --repeat_penalty 1.1"
+    
+    # Check for user-specific config
+    if [ -f "$HOME/.llm-chat/config.json" ]; then
+        echo "Loading user configuration..."
+        local user_opts=$(jq -r '.cli_options' "$HOME/.llm-chat/config.json")
+        options="$user_opts"
+    elif [ -f "$GLOBAL_CONFIG" ]; then
+        echo "Loading global configuration..."
+        local global_opts=$(jq -r '.cli_options' "$GLOBAL_CONFIG")
+        options="$global_opts"
+    fi
+    
+    echo "Using options: $options"
+    cli_options="$options"
+}
+
+# Main function
+main() {
+    # Create user directories if they don't exist
+    mkdir -p "$HOME/.llm-chat/conversations"
+    
+    # List models
+    list_models
+    echo "Enter model number:"
+    read model_num
+    
+    local model_files=($(ls -1 "$MODEL_DIR" | grep -E '\.bin$|\.gguf$'))
+    if [ -n "${model_files[$model_num-1]}" ]; then
+        selected_model="$MODEL_DIR/${model_files[$model_num-1]}"
+        echo "Using model: ${model_files[$model_num-1]}"
+    else
+        echo "Invalid model selection."
+        exit 1
+    fi
+    
+    # Load configuration
+    load_config
+    
+    # Try to get existing conversation
+    use_existing=false
+    get_conversation_context
+    if [ $? -eq 0 ]; then
+        use_existing=true
+    fi
+    
+    # If no existing conversation, try to get initial prompt
+    if [ "$use_existing" = false ]; then
+        get_initial_prompt
+        if [ $? -eq 0 ]; then
+            initial_prompt=$(cat "$selected_prompt")
+        else
+            echo "Enter your prompt manually:"
+            read -p "> " initial_prompt
+        fi
+    fi
+    
+    # Generate timestamp for the conversation file
+    timestamp=$(date +"%Y%m%d_%H%M%S")
+    conv_file="$HOME/.llm-chat/conversations/conversation_${timestamp}.json"
+    
+    # Prepare command
+    if [ "$use_existing" = true ]; then
+        command="llama_cli --model $selected_model --file $selected_conv $cli_options --save-session $conv_file"
+    else
+        command="llama_cli --model $selected_model $cli_options --save-session $conv_file"
+        if [ -n "$initial_prompt" ]; then
+            command="$command <<< \"$initial_prompt\""
+        fi
+    fi
+    
+    # Run the command
+    echo "Starting chat..."
+    eval $command
+    
+    echo "Conversation saved to: $conv_file"
+}
+
+# Run the main function
+main
