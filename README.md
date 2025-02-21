@@ -10,6 +10,7 @@ Guide to set up your own linux server and to be able to access it from anywhere
 
 ## Llama.cpp
 Just git clone with git-lfs installed and enabled
+python3 convert_hf_to_gguf.py --model-name DeepSeek-R1-Distill-Llama-8B --outfile /opt/llm-chat/models/R1_Distill-Llama-8B.gguf ../models/DeepSeek-R1-Distill-Llama-8B
 ### CPU-only
 cmake -DBUILD_SHARED_LIBS=OFF -DGGML_BLAS=ON -DGGML_BLAS_VENDOR=OpenBLAS
 ### GPU
