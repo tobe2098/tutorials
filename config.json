@@ -1,0 +1,8 @@
+{
+  "cli_options": "--repeat_penalty 1.5 --top_p 0.9 --color --keep 0",
+  "R1_Distill_Llama_8B_gguf" : "--temp 0.5 -n 128 --n-gpu-layers 6 --batch-size 128 -t 8 --temp 0.5",
+  "R1_Distill_Qwen_1_5B_gguf" : "--temp 0.5 --ctx_size 4096 --flash-attn",
+  "R1_Distill_Llama_8B_Q4_0_gguf": "--temp 0.5",
+  "Nous_Hermes_2_Mistral_7B_DPO_Q4_0_gguf": "",
+  "R1_Distill_Qwen_7B_Q4_gguf":""
+}

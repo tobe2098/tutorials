@@ -4,6 +4,7 @@
 MODEL_DIR="/opt/llm-chat/models"
 PROMPT_DIR="/opt/llm-chat/prompts"
 GLOBAL_CONFIG="/opt/llm-chat/config.json"
+CLI_PATH="/opt/llm-chat/llama.cpp/build/bin/llama-cli"
 
 # Function to list available models
 list_models() {
@@ -77,21 +78,60 @@ get_initial_prompt() {
         fi
     fi
 }
-
-# Function to load configurations
 load_config() {
+    local model_name="$1"
+    echo "$model_name"
+    
     # Default options
     local options="--ctx_size 2048 --temp 0.7 --repeat_penalty 1.1"
     
     # Check for user-specific config
     if [ -f "$HOME/.llm-chat/config.json" ]; then
         echo "Loading user configuration..."
-        local user_opts=$(jq -r '.cli_options' "$HOME/.llm-chat/config.json")
-        options="$user_opts"
+        # Check if file is valid JSON
+        if jq empty "$HOME/.llm-chat/config.json" 2>/dev/null; then
+            local user_opts=$(jq -r '.cli_options // empty' "$HOME/.llm-chat/config.json")
+            if [ -n "$user_opts" ]; then
+                options="$user_opts"
+            fi
+            
+            # Check for model-specific options if model name provided
+            if [ -n "$model_name" ]; then
+                # Clean model name for use as key (remove special characters)
+                local clean_name=$(echo "$model_name" | sed 's/\./_/g' | sed 's/-/_/g')
+                # Try both original and cleaned names
+                local model_opts=$(jq -r --arg name "$model_name" --arg clean "$clean_name" '.[$name] // .[$clean] // empty' "$HOME/.llm-chat/config.json")
+                if [ -n "$model_opts" ]; then
+                    echo "Loading model-specific configuration for $model_name..."
+                    options="$options $model_opts"
+                fi
+            fi
+        else
+            echo "Warning: User config file is not valid JSON. Using defaults."
+        fi
     elif [ -f "$GLOBAL_CONFIG" ]; then
         echo "Loading global configuration..."
-        local global_opts=$(jq -r '.cli_options' "$GLOBAL_CONFIG")
-        options="$global_opts"
+        # Check if file is valid JSON
+        if jq empty "$GLOBAL_CONFIG" 2>/dev/null; then
+            local global_opts=$(jq -r '.cli_options // empty' "$GLOBAL_CONFIG")
+            if [ -n "$global_opts" ]; then
+                options="$global_opts"
+            fi
+            
+            # Check for model-specific options in global config if model name provided
+            if [ -n "$model_name" ]; then
+                # Clean model name for use as key (remove special characters)
+                local clean_name=$(echo "$model_name" | sed 's/\./_/g' | sed 's/-/_/g')
+                # Try both original and cleaned names
+                local model_opts=$(jq -r --arg name "$model_name" --arg clean "$clean_name" '.[$name] // .[$clean] // empty' "$GLOBAL_CONFIG")
+                if [ -n "$model_opts" ]; then
+                    echo "Loading model-specific configuration for $model_name from global config..."
+                    options="$options $model_opts"
+                fi
+            fi
+        else
+            echo "Warning: Global config file is not valid JSON. Using defaults."
+        fi
     fi
     
     echo "Using options: $options"
@@ -118,7 +158,7 @@ main() {
     fi
     
     # Load configuration
-    load_config
+    load_config "${model_files[$model_num-1]}"
     
     # Try to get existing conversation
     use_existing=false
@@ -132,9 +172,9 @@ main() {
         get_initial_prompt
         if [ $? -eq 0 ]; then
             initial_prompt=$(cat "$selected_prompt")
-        else
-            echo "Enter your prompt manually:"
-            read -p "> " initial_prompt
+        #else
+            #echo "Enter your prompt manually:"
+            #read -p "> " initial_prompt
         fi
     fi
     
@@ -144,9 +184,9 @@ main() {
     
     # Prepare command
     if [ "$use_existing" = true ]; then
-        command="llama_cli --model $selected_model --file $selected_conv $cli_options --save-session $conv_file"
+        command="$CLI_PATH --model $selected_model --file $selected_conv $cli_options" #--save-session $conv_file"
     else
-        command="llama_cli --model $selected_model $cli_options --save-session $conv_file"
+        command="$CLI_PATH --model $selected_model $cli_options" # --save-session $conv_file"
         if [ -n "$initial_prompt" ]; then
             command="$command <<< \"$initial_prompt\""
         fi
@@ -156,7 +196,7 @@ main() {
     echo "Starting chat..."
     eval $command
     
-    echo "Conversation saved to: $conv_file"
+#    echo "Conversation saved to: $conv_file"
 }
 
 # Run the main function
