@@ -141,7 +141,7 @@ load_config() {
 # Main function
 main() {
     # Create user directories if they don't exist
-    mkdir -p "$HOME/.llm-chat/conversations"
+#    mkdir -p "$HOME/.llm-chat/conversations"
     
     # List models
     list_models
@@ -162,35 +162,35 @@ main() {
     
     # Try to get existing conversation
     use_existing=false
-    get_conversation_context
+ #   get_conversation_context
     if [ $? -eq 0 ]; then
         use_existing=true
     fi
     
     # If no existing conversation, try to get initial prompt
-    if [ "$use_existing" = false ]; then
-        get_initial_prompt
-        if [ $? -eq 0 ]; then
-            initial_prompt=$(cat "$selected_prompt")
-        #else
-            #echo "Enter your prompt manually:"
+#    if [ "$use_existing" = false ]; then
+#        get_initial_prompt
+#        if [ $? -eq 0 ]; then
+#            initial_prompt=$(cat "$selected_prompt")
+#        #else
+#            #echo "Enter your prompt manually:"
             #read -p "> " initial_prompt
-        fi
-    fi
+#        fi
+#    fi
     
     # Generate timestamp for the conversation file
     timestamp=$(date +"%Y%m%d_%H%M%S")
-    conv_file="$HOME/.llm-chat/conversations/conversation_${timestamp}.json"
+#    conv_file="$HOME/.llm-chat/conversations/conversation_${timestamp}.json"
     
     # Prepare command
-    if [ "$use_existing" = true ]; then
-        command="$CLI_PATH --model $selected_model --file $selected_conv $cli_options" #--save-session $conv_file"
-    else
+#    if [ "$use_existing" = true ]; then
+#        command="$CLI_PATH --model $selected_model --file $selected_conv $cli_options" #--save-session $conv_file"
+#    else
         command="$CLI_PATH --model $selected_model $cli_options" # --save-session $conv_file"
-        if [ -n "$initial_prompt" ]; then
-            command="$command <<< \"$initial_prompt\""
-        fi
-    fi
+ #       if [ -n "$initial_prompt" ]; then
+ #           command="$command <<< \"$initial_prompt\""
+ #       fi
+#    fi
     
     # Run the command
     echo "Starting chat..."
