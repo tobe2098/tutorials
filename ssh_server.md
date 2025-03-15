@@ -43,5 +43,4 @@ ssh hostname
 ## Decryption on log-in
 If your home drive is encrypted until password log-in and you want to automatically unencrypt on pubkey login... bad news. You can only automate the password prompt and unencryption.
 
-1. A
-2. 
+Check how to do it [here](https://askubuntu.com/questions/153807/ecryptfs-and-ssh-pubkey-login-how-automount-and-other-stuff)
