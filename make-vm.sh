@@ -116,7 +116,7 @@ virt-install \
   --memory 2048 \
   --vcpus 2 \
   --arch aarch64 \
-  --os-variant ubuntu22.04 \
+  --os-variant ubuntu20.04 \
   --machine virt \
   --import \
   --disk path=${TARGET_IMAGE},format=qcow2 \
