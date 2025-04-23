@@ -1,0 +1,15 @@
+#cloud-config
+users:
+  - name: ubuntu
+    groups: users, admin
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    home: /home/ubuntu
+    lock_passwd: false
+    passwd: $6$4dkTs4ugXjbQcltn$Shw25BrNzhsfP6v0l.5aPhP0O1Bwn9Y/TLxwAHf8IBHYU53dwL4Rw6OCy6npDzCImsyNy1PHmA2LW7VYfWilI.
+    #That is the hash of "ubuntu" password has to be hashed
+ssh_pwauth: true
+disable_root: true
+
+chpasswd:
+  expire: false
