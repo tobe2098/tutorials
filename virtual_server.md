@@ -187,7 +187,7 @@ Create a dummy `seed.img` with a minimal `user-data` (Look [here](./seed-user-da
 ```
 cloud-localds /var/lib/libvirt/cloud-init/seed/seed.img user-data
 ```
-Get your hashed password with `mkpasswd --method=SHA-512` from `whois` package.
+Get your hashed admin password with `mkpasswd --method=SHA-512` from `whois` package. Put the hash in the [script](./make-vm.sh), but make sure to singl-quote(`'pass'`) it and escape every `$`:`\$`.
 
 Now boot it with the seed (use a copy of the /usr/share/AAVMF/AAVMF_VARS.fd):
 ```
@@ -217,7 +217,8 @@ Use the script to duplicate the `.qcow2` and create the cloud image with custom 
 ```
 ./make-vm.sh hostname
 ```
-Ready to ssh in and use.
+Ready to ssh in and use. If you want to log in, you may need to reboot the vm. You can `autostart` it with `virsh`. 
+
 
 ## Useful commands
 
