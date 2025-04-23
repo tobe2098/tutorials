@@ -189,30 +189,6 @@ cloud-localds /var/lib/libvirt/cloud-init/seed/seed.img user-data
 ```
 Get your hashed admin password with `mkpasswd --method=SHA-512` from `whois` package. Put the hash in the [script](./make-vm.sh), but make sure to singl-quote(`'pass'`) it and escape every `$`:`\$`.
 
-Now boot it with the seed (use a copy of the /usr/share/AAVMF/AAVMF_VARS.fd):
-```
-virt-install \
-  --name seed \
-  --ram 2048 \
-  --vcpus 2 \
-  --os-variant ubuntu20.04 \
-  --arch aarch64 \
-  --import \
-  --machine virt \
-  --disk path=/var/lib/libvirt/images/seed.qcow2,format=qcow2 \
-  --disk path=/var/lib/libvirt/cloud-init/seed/seed.img,format=raw \
-  --network bridge=br0 \
-  --graphics none \
-  --console pty,target_type=serial \
-  --boot loader=/usr/share/AAVMF/AAVMF_CODE.fd,nvram=/var/lib/libvirt/qemu/nvram/seed_VARS.fd,loader.readonly=yes,loader.type=pflash
-```
-Let `cloud-init` run on booting. Then, inside the VM first check your interface name with `ip a` and then:
-```
-sudo cloud-init clean
-sudo shutdown now
-```
-Now the `.qcow2` image is clean for duplication.
-
 Use the script to duplicate the `.qcow2` and create the cloud image with custom hostname and automatically `virt-install` it (takes very long to run bc of `.qcow2` duplication with compression):
 ```
 ./make-vm.sh hostname
