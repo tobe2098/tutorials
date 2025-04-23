@@ -2,12 +2,13 @@
 set -euo pipefail
 trap 'echo "Error on line $LINENO"; exit 1' ERR
 
-if [ $# -ne 1 ]; then
-    echo "Usage: $0 <hostname>"
+if [ $# -ne 2 ]; then
+    echo "Usage: $0 <hostname> <IPv4 address>"
     exit 1
 fi
 
 VMNAME=$1
+IP=$2
 IMAGE_DIR="/var/lib/libvirt/images"
 NVRAM_VARS="/var/lib/libvirt/qemu/nvram/${VMNAME}_VARS.fd"
 BOOT_VARS="/usr/share/AAVMF/AAVMF_VARS.fd"
@@ -41,27 +42,24 @@ debug:
 
 hostname: ${VMNAME}
 manage_etc_hosts: true
+# Disable the default user creation
+
 users:
   - name: ubuntu         # Use 'ubuntu' as it's the default user
     sudo: ALL=(ALL) NOPASSWD:ALL
     groups: users, admin
     home: /home/ubuntu
     lock_passwd: false
-    passwd: '\$6\$sd7VPmQgvDdLi1jH\$mzQXM6e3xlGC8D9YNalYikbVI0xQurYcK8p0fFi95fLXs8ApdH2WG5IlkHjJ9tSXrXVJaqlCFGPh50pco5CVn/'
-    #passwd: '\$6\$rounds=4096\$byY3nxAw\$eCcCQRvx4K.B2rTjnRnT7vQal9EuEJ7bHbINj0KI5PJxNRnFAlaVLGGmAnRY8zUVXhxvxLLl2VIEPlUlN0nyp0'
-    #plain_text_passwd: 'ubuntu'
+    passwd: '\$6\$qPOK1T3vd6ou5nmH\$oySSiKlsYu1TpuhQ9.aMhR4vTAj8qWkitBsFvekXNFr097xp5hrvI42KyIJ4VXbmc7un1q.CbrW7S3iIfdP45.' #pass, every $ is \$
     shell: /bin/bash
     ssh_authorized_keys:
       - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHC009y9YIkSeKF/dSygNn2xsacL/LuAJONPXqRvxh3L anton@Over700
       - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMmm9JOa9R4n5E7YftCc6evF97KveacMYAT6CFDOt3Ay anton@Useless_box
-# Set password for default user
 chpasswd:
-#  list: |
-#    ubuntu:ubuntu
-#    root:ubuntu
   expire: false
+
 # Allow password authentication for SSH
-ssh_pwauth: true
+ssh_pwauth: false
 disable_root: false
 # Set a custom password for the default ubuntu user
 
@@ -70,7 +68,13 @@ network:
   version: 2
   ethernets:
     enp1s0:     # Standard interface name, may need adjustment
-      dhcp4: true   # Using DHCP is more reliable for testing
+      #dhcp4: true   # Using DHCP is more reliable for testing
+      dhcp4: false
+      addresses:
+        - ${IP}/24
+      gateway4: 192.168.0.1
+      nameservers:
+        addresses: [8.8.8.8, 1.1.1.1]
 
 # Console setup
 bootcmd:
