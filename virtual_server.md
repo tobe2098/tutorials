@@ -7,6 +7,7 @@ sudo apt install docker.io #Or podman
 sudo systemctl start libvirtd
 sudo systemctl enable libvirtd
 sudo apt install qemu-efi-aarch64 #If you are Rpi4 or above, you have no UEFI files
+sudo apt install cloud-image-utils
 ```
 ## Network setup (bridge, optional)
 ```
@@ -163,30 +164,6 @@ virt-install \
 (Assuming you have set up the [bridge](./virtual_server.md#network-setup-bridge-optional))
 Start by downloading a cloud server image : `focal-server-cloudimg-arm64.img`
 
-<!-- Convert the image to `.qcow2`:
-```
-qemu-img convert -f raw -O qcow2 ubuntu-20.04-server-cloudimg-arm64.img /var/lib/libvirt/images/ubuntu20.04-base.qcow2
-```
-Resize (optional):
-```
-qemu-img resize /var/lib/libvirt/images/ubuntu20.04-base.qcow2 20G
-``` -->
-We will use that as a base. Now we clone it:
-```
-qemu-img convert -c -O qcow2 focal-server-cloudimg-arm64.img seed.qcow2
-```
-
-Install the cloud-image-utils
-
-```
-sudo apt install cloud-image-utils
-```
-
-Create a dummy `seed.img` with a minimal `user-data` (Look [here](./seed-user-data), use only for testing the pipeline):
-
-```
-cloud-localds /var/lib/libvirt/cloud-init/seed/seed.img user-data
-```
 Get your hashed admin password with `mkpasswd --method=SHA-512` from `whois` package. Put the hash in the [script](./make-vm.sh), but make sure to singl-quote(`'pass'`) it and escape every `$`:`\$`.
 
 Use the script to duplicate the `.qcow2` and create the cloud image with custom hostname and automatically `virt-install` it (takes very long to run bc of `.qcow2` duplication with compression):
