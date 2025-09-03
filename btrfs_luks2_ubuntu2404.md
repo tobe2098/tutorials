@@ -91,3 +91,42 @@ Then we setup the `/etc/fstab` according to our subvolumes. You will find, in th
 ## Step 4: Setting up booting
 Now comes the critical part. Doing this part wrongly or entering this step wrongly will probably mean you need to repeat some of the steps above.
 ### Mount bind and chroot
+To setup our chroot, we need to mount bind the following folders:
+```
+for i in dev proc sys run; do sudo mount --bind /$i /mnt/root/$i; done
+```
+Then you can chroot into the system:
+```
+sudo chroot /mnt/root
+```
+### Optional: create a user
+Through the installer you should have already created a user, but if you had not, this is the moment to do it.
+### Setting up conf files
+To setup GRUB properly (although some of this may be optional), add or edit the following lines in `/etc/default/grub`:
+```
+GRUB_ENABLE_CRYPTODISK=y
+GRUB_PRELOAD_MODULES="luks cryptodisk part_gpt part_msdos" # May be redundant
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
+GRUB_CMDLINE_LINUX="cryptdevice=UUID=your-encrypted-luks-disk-uuid:cryptroot root=/dev/mapper/cryptroot rootflags=subvol=@"
+```
+To setup initramfs to decrypt your disk it is also important to add the following line to `/etc/cryptsetup-initramfs/conf-hook`:
+```
+CRYPTSETUP=y
+```
+
+### Updating the kernel and GRUB images
+Now, some of this may be wrong, depending on your architecture or my ignorance of how the different commands arrange the booting process, but now it should be pretty straight forward:
+```
+update-initramfs -c -k all
+grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=Ubuntu --recheck
+update-grub
+```
+
+## Step 5: Undo and test
+Now that everything should be set up, it is time to test. Before doing that, `exit` the chroot, then:
+```
+sudo umount -R /mnt/root
+sudo cryptsetup close cryptroot
+```
+Now you are free to reboot and boot into your new LUKS2+btrfs partition. You will get a password prompt for decryption.
+If you have boot order issues, try to use `efibootmgr`.
