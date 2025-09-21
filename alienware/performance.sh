@@ -1,2 +1,2 @@
 #!/bin/bash
-echo "performance" > /sys/class/platform-profile/platform-profile-*/profile
+echo "performance" > /sys/class/platform-profile/platform-profile-0/profile
