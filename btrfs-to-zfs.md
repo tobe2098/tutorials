@@ -8,8 +8,8 @@ zpool import backup
 ```
 
 ```
-sudo zfs load-key -a backup
-sudo zfs mount -a backup
+sudo zfs load-key backup/secure
+sudo zfs mount backup/secure
 ```
 
 ## BTRFS streams
@@ -18,8 +18,8 @@ sudo zfs mount -a backup
 
 ```
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-sudo btrfs subvolume snapshot -r / /.snapshots/@_backup_$TIMESTAMP                  
-sudo btrfs subvolume snapshot -r /var /.snapshots/@var_backup_$TIMESTAMP  
+sudo btrfs subvolume snapshot -r / /.snapshots/@_backup_$TIMESTAMP
+sudo btrfs subvolume snapshot -r /var /.snapshots/@var_backup_$TIMESTAMP
 sudo btrfs subvolume snapshot -r /home /.snapshots/@home_backup_$TIMESTAMP
 ```
 
@@ -29,7 +29,7 @@ To avoid heavy files we are not interested in, we will keep a `rsync_excludes.tx
 
 To do the backup, we will:
 ```
-sudo rsync --avxHAXS --numeric-ids --acls --xattrs --hard-links --sparse --progress --exclude-from=rsync_excludes.txt /.snapshots/@subvol_backup_$TIMESTAMP/ /mnt/secure/var/
+sudo rsync -avxHAXS --numeric-ids --acls --xattrs --hard-links --sparse --progress --exclude-from=rsync_excludes.txt /.snapshots/@subvol_backup_$TIMESTAMP/ /mnt/secure/var/
 ```
 ## ZFS snapshots
 
@@ -40,13 +40,17 @@ sudo zfs snapshot backup/secure/root@first
 sudo zfs snapshot backup/secure/home@first
 sudo zfs snapshot backup/secure/var@first
 ```
-
+## Intermediate
+```
+zpool list
+rsync --delete
+```
 ## Finalize
 
 ```
-sudo zfs unmount -a backup
+sudo zfs unmount -a
 
-sudo zfs unload-key -a backup
+sudo zfs unload-key backup/secure
 
 sudo zpool export backup
 ```
