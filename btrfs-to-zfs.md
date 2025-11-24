@@ -29,7 +29,7 @@ To avoid heavy files we are not interested in, we will keep a `rsync_excludes.tx
 
 To do the backup, we will:
 ```
-sudo rsync -avxHAXS --numeric-ids --acls --xattrs --hard-links --sparse --progress --exclude-from=rsync_excludes.txt /.snapshots/@subvol_backup_$TIMESTAMP/ /mnt/secure/var/
+sudo rsync -avxHAXS --numeric-ids --delete --acls --xattrs --hard-links --sparse --progress --exclude-from=rsync_excludes.txt /.snapshots/@subvol_backup_$TIMESTAMP/ /mnt/secure/var/
 ```
 ## ZFS snapshots
 
